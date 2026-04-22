@@ -1,2 +1,3 @@
 pypdf2==3.0.*
+pyHanko==0.34.*
 reportlab==4.4.*
