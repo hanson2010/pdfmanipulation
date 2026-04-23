@@ -187,7 +187,6 @@ def main():
     parser = argparse.ArgumentParser(
         description='Sign a PDF with a PFX certificate, signature image, and timestamp.'
     )
-    parser.add_argument('input_pdf', help='Input PDF file')
     parser.add_argument('--password', default=None, help='PFX password')
     parser.add_argument('--page', type=int, default=1, help='Page number to sign (1-based, default: 1)')
     parser.add_argument('--x', type=float, default=85, help='X coordinate in pt from left edge (default: 85)')
@@ -195,9 +194,12 @@ def main():
     parser.add_argument('--timestamp', default=None,
                         help='Timestamp string to display (default: current date/time)')
 
-    args = parser.parse_args()
+    args, remaining = parser.parse_known_args()
+    input_pdf = remaining[0] if remaining else None
+    if not input_pdf:
+        parser.error('the following arguments are required: input_pdf')
 
-    input_path = Path(args.input_pdf)
+    input_path = Path(input_pdf)
     if not input_path.exists():
         raise FileNotFoundError(f'Input file "{input_path}" not found.')
 

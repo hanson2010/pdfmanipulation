@@ -68,14 +68,16 @@ def add_header_footer(input_path, output_path, header_text=None):
 
 def main():
     parser = argparse.ArgumentParser(description='Add header and footer to a PDF.')
-    parser.add_argument('input_pdf', help='Input PDF file')
     parser.add_argument(
-        'header_text', nargs='?', default=None, help='Header text (right-aligned, optional)'
+        '--header-text', default=None, help='Header text (right-aligned, optional)'
     )
 
-    args = parser.parse_args()
+    args, remaining = parser.parse_known_args()
+    input_pdf = remaining[0] if remaining else None
+    if not input_pdf:
+        parser.error('the following arguments are required: input_pdf')
 
-    input_path = Path(args.input_pdf)
+    input_path = Path(input_pdf)
     if not input_path.exists():
         raise FileNotFoundError(f'Input file "{input_path}" not found.')
 
