@@ -7,6 +7,23 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
+### Install Tesseract (for image OCR)
+
+For image-to-markdown conversion to work, you need to install Tesseract OCR on your system:
+
+- **Ubuntu/Debian:**
+  ```bash
+  sudo apt install tesseract-ocr
+  ```
+
+- **macOS (Homebrew):**
+  ```bash
+  brew install tesseract
+  ```
+
+- **Windows:**
+  Download from [Tesseract GitHub](https://github.com/tesseract-ocr/tesseract) and add to PATH.
+
 ## Add header (optional) and footer to a PDF file
 
 Footer will always be formated as `–page#–`, where the dashes are unicode `U+2013`.
@@ -78,3 +95,38 @@ If the PFX file is password-protected and no `--password` is provided, the progr
   | `--x` | X coordinate in pt from left edge | 85 (~30mm) |
   | `--y` | Y coordinate in pt from top edge | 425 (~150mm) |
   | `--timestamp` | Timestamp string to display | current date/time |
+
+## Convert files to Markdown
+
+Convert PDFs, DOCX, DOC, and diagram images to Markdown. If the output exceeds 500 lines, it will be split into multiple files at the nearest Markdown header.
+
+### Usage
+
+```bash
+./scripts/convert_anything_to_md.sh input.pdf
+./scripts/convert_anything_to_md.sh input.docx
+./scripts/convert_anything_to_md.sh input.png
+./scripts/convert_anything_to_md.sh input.pdf /path/to/output/dir
+```
+
+**Supported formats:**
+- `.pdf` - PDF documents
+- `.docx` - Microsoft Word (modern)
+- `.doc` - Microsoft Word (legacy)
+- `.png`, `.jpg`, `.jpeg`, `.gif`, `.bmp`, `.tiff`, `.webp` - Images (requires Tesseract OCR)
+
+**Output:**
+- If output ≤ 500 lines: `input.md`
+- If output > 500 lines: `input_part1.md`, `input_part2.md`, etc.
+
+## Strip modification dates from a PDF
+
+Strips modification dates from PDF metadata.
+
+### Usage
+
+```bash
+./scripts/strip_moddate.sh document.pdf
+```
+
+**Output:** `document_stripped.pdf`
