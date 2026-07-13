@@ -4,6 +4,10 @@ pypdf2==3.0.*
 pyHanko==0.34.*
 reportlab==4.4.*
 pymupdf4llm==1.28.*
-pytesseract==0.3.*
+easyocr==1.7.*
 mammoth==1.12.*
 docx2txt==0.9.*
+pandas==3.0.*
+openpyxl==3.1.*
+xlrd==2.0.*
+tabulate==0.10.*

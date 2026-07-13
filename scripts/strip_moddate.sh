@@ -1,10 +1,7 @@
 #!/bin/bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-
-VENV_PYTHON_PATH="$PROJECT_ROOT/.venv/bin/python3"
-PYTHON_SCRIPT="$PROJECT_ROOT/src/strip_moddate.py"
+VENV_PYTHON_PATH="/path/to/.venv/bin/python3"
+PYTHON_SCRIPT="/path/to/strip_moddate.py"
 
 if [ ! -f "$VENV_PYTHON_PATH" ]; then
     echo "Warning: Virtual environment not found at $VENV_PYTHON_PATH"

@@ -85,15 +85,31 @@ def convert_file(input_path: Path) -> str:
         except ImportError:
             print("Error: docx2txt not installed. Please install it first.", file=sys.stderr)
             sys.exit(1)
+    elif file_ext in (".xlsx", ".xls"):
+        try:
+            import pandas as pd
+            from tabulate import tabulate
+            # Read all sheets
+            xl = pd.ExcelFile(str(input_path))
+            md_parts = [f"# {input_path.name}"]
+            for sheet_name in xl.sheet_names:
+                df = pd.read_excel(xl, sheet_name=sheet_name)
+                md_parts.append(f"\n## {sheet_name}")
+                md_parts.append(tabulate(df, headers="keys", tablefmt="pipe", showindex=False))
+            return "\n".join(md_parts)
+        except ImportError:
+            print("Error: pandas, openpyxl, xlrd, and tabulate not installed. Please install them first.", file=sys.stderr)
+            sys.exit(1)
     elif file_ext in (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp"):
         try:
-            from PIL import Image
-            import pytesseract
-            img = Image.open(str(input_path))
-            text = pytesseract.image_to_string(img)
+            import easyocr
+            # Initialize EasyOCR reader for English, Simplified Chinese, and Traditional Chinese
+            reader = easyocr.Reader(['en', 'ch_sim', 'ch_tra'])
+            results = reader.readtext(str(input_path), detail=0)
+            text = "\n".join(results)
             return f"# {input_path.name}\n\n{text}"
         except ImportError:
-            print("Error: Pillow and pytesseract not installed. Please install them first.", file=sys.stderr)
+            print("Error: easyocr not installed. Please install it first.", file=sys.stderr)
             sys.exit(1)
     else:
         print(f"Error: Unsupported file type {file_ext}", file=sys.stderr)
