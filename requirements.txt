@@ -1,13 +1,18 @@
+# PDF manipulation
 Pillow==12.2.*
 pikepdf==10.9.*
 pypdf2==3.0.*
 pyHanko==0.34.*
 reportlab==4.4.*
+
+# Markdown / document conversion
 pymupdf4llm==1.28.*
+markitdown[docx]==0.1.*
 easyocr==1.7.*
-mammoth==1.12.*
-docx2txt==0.9.*
+
+# Spreadsheet conversion
 pandas==3.0.*
 openpyxl==3.1.*
 xlrd==2.0.*
+odfpy==1.3.*
 tabulate==0.10.*

@@ -2,9 +2,10 @@
 import os
 import sys
 from pathlib import Path
+from typing import List
 
 
-def split_markdown(content: str, max_lines: int = 500) -> list[str]:
+def split_markdown(content: str, max_lines: int = 500) -> List[str]:
     lines = content.splitlines(keepends=True)
     if len(lines) <= max_lines:
         return [content]
@@ -66,40 +67,15 @@ def convert_file(input_path: Path) -> str:
             import pymupdf4llm
             return pymupdf4llm.to_markdown(str(input_path))
         except ImportError:
-            print("Error: pymupdf4llm not installed. Please install it first.", file=sys.stderr)
-            sys.exit(1)
-    elif file_ext == ".docx":
+            raise RuntimeError("pymupdf4llm not installed. Please install it first.")
+    elif file_ext in (".docx", ".xlsx", ".xls", "pptx", "ppt"):
         try:
-            import mammoth
-            with open(str(input_path), "rb") as docx_file:
-                result = mammoth.convert_to_markdown(docx_file)
-                return result.value
+            from markitdown import MarkItDown
+            md = MarkItDown()
+            result = md.convert(str(input_path))
+            return result.text_content
         except ImportError:
-            print("Error: mammoth not installed. Please install it first.", file=sys.stderr)
-            sys.exit(1)
-    elif file_ext == ".doc":
-        try:
-            from docx2txt import process
-            text = process(str(input_path))
-            return f"# {input_path.name}\n\n{text}"
-        except ImportError:
-            print("Error: docx2txt not installed. Please install it first.", file=sys.stderr)
-            sys.exit(1)
-    elif file_ext in (".xlsx", ".xls"):
-        try:
-            import pandas as pd
-            from tabulate import tabulate
-            # Read all sheets
-            xl = pd.ExcelFile(str(input_path))
-            md_parts = [f"# {input_path.name}"]
-            for sheet_name in xl.sheet_names:
-                df = pd.read_excel(xl, sheet_name=sheet_name)
-                md_parts.append(f"\n## {sheet_name}")
-                md_parts.append(tabulate(df, headers="keys", tablefmt="pipe", showindex=False))
-            return "\n".join(md_parts)
-        except ImportError:
-            print("Error: pandas, openpyxl, xlrd, and tabulate not installed. Please install them first.", file=sys.stderr)
-            sys.exit(1)
+            raise RuntimeError("markitdown not installed. Please install it first with 'pip install markitdown[all]'.")
     elif file_ext in (".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp"):
         try:
             import easyocr
@@ -109,39 +85,60 @@ def convert_file(input_path: Path) -> str:
             text = "\n".join(results)
             return f"# {input_path.name}\n\n{text}"
         except ImportError:
-            print("Error: easyocr not installed. Please install it first.", file=sys.stderr)
-            sys.exit(1)
+            raise RuntimeError("easyocr not installed. Please install it first.")
     else:
-        print(f"Error: Unsupported file type {file_ext}", file=sys.stderr)
-        sys.exit(1)
+        raise RuntimeError(f"Unsupported file type {file_ext}")
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: convert_anything_to_md.py <input_file> [output_dir]", file=sys.stderr)
-        sys.exit(1)
+    import argparse
     
-    input_path = Path(sys.argv[1])
-    output_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else input_path.parent
+    parser = argparse.ArgumentParser(description="Convert documents to Markdown.")
+    parser.add_argument("input_pattern", help="Input file or wildcard pattern (quote patterns like '*.pdf')")
+    parser.add_argument("-o", "--output-dir", help="Output directory (default: same as input file directory)")
     
-    if not input_path.exists():
-        print(f"Error: Input file {input_path} does not exist.", file=sys.stderr)
-        sys.exit(1)
-    
-    output_dir.mkdir(parents=True, exist_ok=True)
-    markdown_content = convert_file(input_path)
-    chunks = split_markdown(markdown_content)
-    
-    base_name = input_path.stem
-    if len(chunks) == 1:
-        output_file = output_dir / f"{base_name}.md"
-        output_file.write_text(markdown_content, encoding="utf-8")
-        print(f"Written to {output_file}")
+    args = parser.parse_args()
+
+    pattern_path = Path(args.input_pattern)
+
+    if pattern_path.is_absolute():
+        input_paths = list(pattern_path.parent.glob(pattern_path.name))
     else:
-        for i, chunk in enumerate(chunks, 1):
-            output_file = output_dir / f"{base_name}_part{i}.md"
-            output_file.write_text(chunk, encoding="utf-8")
-            print(f"Written to {output_file}")
+        input_paths = list(Path.cwd().glob(args.input_pattern))
+    
+    if input_paths:
+        print(f"Found {len(input_paths)} file(s) matching '{args.input_pattern}':")
+        for p in input_paths:
+            print(f"  - {p}")
+        for input_path in input_paths:
+            if input_path.is_file():
+                try:
+                    if args.output_dir:
+                        output_dir = Path(args.output_dir)
+                    else:
+                        output_dir = input_path.parent
+                    
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    markdown_content = convert_file(input_path)
+                    chunks = split_markdown(markdown_content)
+                    
+                    base_name = input_path.stem
+                    if len(chunks) == 1:
+                        output_file = output_dir / f"{base_name}.md"
+                        output_file.write_text(markdown_content, encoding="utf-8")
+                        print(f"Written to {output_file}")
+                    else:
+                        for i, chunk in enumerate(chunks, 1):
+                            output_file = output_dir / f"{base_name}_part{i}.md"
+                            output_file.write_text(chunk, encoding="utf-8")
+                            print(f"Written to {output_file}")
+                except Exception as e:
+                    print(f"Error processing {input_path}: {e}", file=sys.stderr)
+            else:
+                print(f"Skipping {input_path}: not a file", file=sys.stderr)
+    else:
+        print(f"No files found matching {args.input_pattern}", file=sys.stderr)
 
 
 if __name__ == "__main__":
