@@ -121,3 +121,42 @@ Strips modification dates from PDF metadata.
 ```
 
 **Output:** `document_stripped.pdf`
+
+## Remove watermarks (and backgrounds) from a PDF
+
+Strips watermarks from every page, whether or not they're explicitly tagged as such: `/Subtype /Watermark`
+annotations (what Acrobat's "Add Watermark" feature creates), Optional Content Group (OCG) layers whose name
+contains "watermark", XObjects (images or form XObjects) whose resource name contains "watermark"
+(case-insensitive), untagged XObjects drawn with a rotated/sheared placement matrix, and images whose alpha
+channel (`/SMask`) is mostly transparent — real embedded photos/scans are essentially never like that; it's
+the signature of a stamp that was pre-rendered (rotation and all) straight into pixels, leaving no matrix,
+name, or tag behind to detect it by otherwise.
+
+**Caveat:** the transparent-image check has no size threshold, so a small signature image added by
+`sign_with_pfx.sh` would also get stripped if you ran this tool on an already-signed PDF.
+
+Set `VENV_PYTHON_PATH` in `scripts/remove_watermark.sh`.
+
+### Usage
+
+- **Watermarks only:**
+
+  ```bash
+  ./scripts/remove_watermark.sh document.pdf
+  ```
+
+  Output: `document_dewatermarked.pdf`
+
+- **Also strip full-page background images:**
+
+  ```bash
+  ./scripts/remove_watermark.sh document.pdf --remove-background
+  ```
+
+  Output: `document_dewatermarked.pdf`
+
+- **Options:**
+
+  | Option | Description | Default |
+  |--------|-------------|---------|
+  | `--remove-background` | Also remove images that cover (approximately) the full page | off |

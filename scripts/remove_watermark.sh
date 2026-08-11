@@ -1,12 +1,11 @@
 #!/bin/bash
 
 VENV_PYTHON_PATH="/path/to/.venv/bin/python3"
-PYTHON_SCRIPT="/path/to/convert_anything_to_md.py"
+PYTHON_SCRIPT="/path/to/remove_watermark.py"
 
 if [ ! -f "$VENV_PYTHON_PATH" ]; then
-    echo "Warning: Virtual environment not found at $VENV_PYTHON_PATH"
-    echo "Falling back to system python3"
-    VENV_PYTHON_PATH="python3"
+    echo "Error: Virtual environment not found at $VENV_PYTHON_PATH"
+    exit 1
 fi
 
 "$VENV_PYTHON_PATH" "$PYTHON_SCRIPT" "$@"
