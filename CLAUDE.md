@@ -30,8 +30,7 @@ These two are separate and must not be conflated:
   the interpreter itself, highest to lowest priority:
   1. `$PYTHON_ENVS_PATH/pdfmanipulation` — use if that directory exists.
   2. `./.venv` — use if that directory exists.
-  3. Otherwise, stop and report the error to the user. Do not fall back to system `python3` and do not create
-     a venv on your own.
+  3. Otherwise, stop and report the error to the user. Do not fall back to system `python3` and do not create a venv on your own.
 - **`scripts/*.sh`** (what end users invoke) are unrelated to the above — they keep hardcoding
   `VENV_PYTHON_PATH` as a `/path/to/...` placeholder, per the existing convention documented below. Do not
   change that convention or make the wrappers read `$PYTHON_ENVS_PATH`.
